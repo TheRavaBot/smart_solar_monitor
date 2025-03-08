@@ -227,7 +227,7 @@
             if (data) {
                 Object.entries(data).forEach(([key, entry]) => {
                     const formattedTime = formatTimestamp(entry.datetimestamp); // Format datetime
-
+                    const formatedruntime = sectohms(entry.runtime);
                     tableBody.innerHTML += `
                         <tr>
                             <td>Device001</td>
@@ -238,7 +238,7 @@
                             <td>${entry.current2}</td>
                             <td>${entry.power1}</td>
                             <td>${entry.power2}</td>
-                            <td>${entry.runtime}</td>
+                            <td>${formatedruntime}</td>
                   
                         </tr>
                     `;
@@ -254,14 +254,11 @@
             document.getElementById('voltage2').textContent = data?.voltage2;
             document.getElementById('current1').textContent = data?.current1;
             document.getElementById('current2').textContent = data?.current2;
-
-document.getElementById('power1').textContent = data?.power1;
-
-document.getElementById('power2').textContent = data?.power2;
-
-document.getElementById('runtime1').textContent = data?.runtime;
-
-document.getElementById('runtime2').textContent = data?.runtime;
+            document.getElementById('power1').textContent = data?.power1;
+            document.getElementById('power2').textContent = data?.power2;
+            let sruntime = sectohms(data.runtime);
+            document.getElementById('runtime1').textContent = sruntime;
+            document.getElementById('runtime2').textContent = sruntime;
            
 
         });
@@ -332,6 +329,18 @@ function exporttoExcel() {
         console.error("Error fetching data:", error);
     });
 }
+
+    function sectohms(theruntime){
+
+              let sec = parseInt(theruntime, 10);
+                let hours = String(Math.floor(sec / 3600)).padStart(2, "0");
+                let minutes = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+                let seconds = String(sec % 60).padStart(2, "0");
+                let newruntime = `${hours}:${minutes}:${seconds}`;
+console.log(newruntime);
+return newruntime;
+}
+
 
     // Call fetchData on page load
     fetchData();
