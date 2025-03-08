@@ -272,7 +272,7 @@ document.getElementById('runtime2').textContent = data?.runtime;
 
 
 
-function exporttoexcel() {
+function exportToExcel() {
     database.ref("/unilandmark_elect/smart_solar_tracker/logs").once("value", snapshot => {
         if (!snapshot.exists()) {
             alert("No data found!");
@@ -282,30 +282,40 @@ function exporttoexcel() {
         let data = [];
         snapshot.forEach(childSnapshot => {
             let log = childSnapshot.val();
+
+            // Format datetimestamp (YYYY-MM-DD#HH:MM:SS)
+            if (log.datetimestamp) {
+                let dt = log.datetimestamp.toString();
+                log.datetimestamp = `${dt.slice(0, 4)}-${dt.slice(4, 6)}-${dt.slice(6, 8)}#${dt.slice(8, 10)}:${dt.slice(10, 12)}:${dt.slice(12, 14)}`;
+            }
+
+            // Convert runtime (seconds) → HH:MM:SS
+            if (log.runtime !== undefined) {
+                let sec = parseInt(log.runtime, 10);
+                let hours = String(Math.floor(sec / 3600)).padStart(2, "0");
+                let minutes = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+                let seconds = String(sec % 60).padStart(2, "0");
+                log.runtime = `${hours}:${minutes}:${seconds}`;
+            }
+
             data.push(log);
         });
 
-        // Sort by datetimestamp
-        data.sort((a, b) => new Date(a.datetimestamp) - new Date(b.datetimestamp));
+        // Sort by formatted datetimestamp
+        data.sort((a, b) => new Date(a.datetimestamp.replace("#", " ")) - new Date(b.datetimestamp.replace("#", " ")));
 
-        // Extract column headers dynamically from the first log entry
+        // Extract column headers dynamically
         let headers = Object.keys(data[0]);
 
-        // Manually construct rows for Excel
+        // Construct Excel data
         let sheetData = [];
-
-        // Add the custom heading row (spanning all columns)
-        sheetData.push([ "EXPORTED DATA" ]); 
-
-        // Add column headers
-        sheetData.push(headers);
-
-        // Add log data
+        sheetData.push(["EXPORTED DATA"]); // Custom heading
+        sheetData.push(headers); // Column headers
         data.forEach(log => {
             sheetData.push(headers.map(header => log[header]));
         });
 
-        // Convert array to worksheet
+        // Convert to worksheet
         let ws = XLSX.utils.aoa_to_sheet(sheetData);
 
         // Style the custom heading (bold and red)
@@ -322,10 +332,6 @@ function exporttoexcel() {
         console.error("Error fetching data:", error);
     });
 }
-
-
-
-
 
     // Call fetchData on page load
     fetchData();
