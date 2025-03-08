@@ -168,7 +168,7 @@
     <div class="info-section">
 <!--     <a href="https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg" target="_blank">test Image</a> -->
         <div class="info-card">
-            <h3>SOLAR PANEL(STATIONARY)</h3>
+            <h3>PANEL(STATIONARY)</h3>
             <p>Voltage: <span id="voltage1">---</span>  V</p>
               <p>Current: <span id="current1">---</span>  A</p>
 
@@ -177,7 +177,7 @@
 <p>RunTime: <span id="runtime1">---</span>  </p>
         </div>
         <div class="info-card">
-            <h3>SOLAR PANEL(TRACKING)</h3>
+            <h3>PANEL(TRACKING)</h3>
              <p>Voltage: <span id="voltage2">---</span>  V</p>
               <p>Current: <span id="current2">---</span>  A</p>
 
@@ -206,7 +206,7 @@
                     <th>Current2 (A)</th>
                     <th>Power1 (W)</th>
                     <th>Power2 (W)</th>
-                    <th>RunTime (HMS)</th>
+                    <th>RunTime (H:M:S)</th>
                 </tr>
             </thead>
             <tbody id="data-table"></tbody>
@@ -290,67 +290,6 @@
 
 
 
-// function exporttoExcel() {
-//     database.ref("/unilandmark_elect/smart_solar_tracker/logs").once("value", snapshot => {
-//         if (!snapshot.exists()) {
-//             alert("No data found!");
-//             return;
-//         }
-
-//         let data = [];
-//         snapshot.forEach(childSnapshot => {
-//             let log = childSnapshot.val();
-
-//             // Format datetimestamp (YYYY-MM-DD#HH:MM:SS)
-//             if (log.datetimestamp) {
-//                 let dt = log.datetimestamp.toString();
-//                 log.datetimestamp = `${dt.slice(0, 4)}-${dt.slice(4, 6)}-${dt.slice(6, 8)}#${dt.slice(8, 10)}:${dt.slice(10, 12)}:${dt.slice(12, 14)}`;
-//             }
-
-//             // Convert runtime (seconds) → HH:MM:SS
-//             if (log.runtime !== undefined) {
-//                 let sec = parseInt(log.runtime, 10);
-//                 let hours = String(Math.floor(sec / 3600)).padStart(2, "0");
-//                 let minutes = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
-//                 let seconds = String(sec % 60).padStart(2, "0");
-//                 log.runtime = `${hours}:${minutes}:${seconds}`;
-//             }
-
-//             data.push(log);
-//         });
-
-//         // Sort by formatted datetimestamp
-//         data.sort((a, b) => new Date(a.datetimestamp.replace("#", " ")) - new Date(b.datetimestamp.replace("#", " ")));
-
-//         // Extract column headers dynamically
-//         let headers = Object.keys(data[0]);
-
-//         // Construct Excel data
-//         let sheetData = [];
-//         sheetData.push(["EXPORTED DATA"]); // Custom heading
-//         sheetData.push(headers); // Column headers
-//         data.forEach(log => {
-//             sheetData.push(headers.map(header => log[header]));
-//         });
-
-//         // Convert to worksheet
-//         let ws = XLSX.utils.aoa_to_sheet(sheetData);
-
-//         // Style the custom heading (bold and red)
-//         let headingCell = "A1";
-//         ws[headingCell].s = {
-//             font: { bold: true, color: { rgb: "FF0000" } }
-//         };
-
-//         // Create workbook and export
-//         let wb = XLSX.utils.book_new();
-//         XLSX.utils.book_append_sheet(wb, ws, "Logs");
-//         XLSX.writeFile(wb, "solar_data_logs.xlsx");
-//     }).catch(error => {
-//         console.error("Error fetching data:", error);
-//     });
-// }
-
 function exporttoExcel() {
     database.ref("/unilandmark_elect/smart_solar_tracker/logs").once("value", snapshot => {
         if (!snapshot.exists()) {
@@ -397,26 +336,87 @@ function exporttoExcel() {
         // Convert to worksheet
         let ws = XLSX.utils.aoa_to_sheet(sheetData);
 
-        // Create workbook and write to Blob
+        // Style the custom heading (bold and red)
+        let headingCell = "A1";
+        ws[headingCell].s = {
+            font: { bold: true, color: { rgb: "FF0000" } }
+        };
+
+        // Create workbook and export
         let wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Logs");
-
-        let wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-
-        // Create Blob and trigger download
-        let blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-        let url = URL.createObjectURL(blob);
-        let a = document.createElement("a");
-        a.href = url;
-        a.download = "solar_data_logs.xlsx";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        XLSX.writeFile(wb, "solar_data_logs.xlsx");
     }).catch(error => {
         console.error("Error fetching data:", error);
     });
 }
+
+// function exporttoExcel() {
+//     database.ref("/unilandmark_elect/smart_solar_tracker/logs").once("value", snapshot => {
+//         if (!snapshot.exists()) {
+//             alert("No data found!");
+//             return;
+//         }
+
+//         let data = [];
+//         snapshot.forEach(childSnapshot => {
+//             let log = childSnapshot.val();
+
+//             // Format datetimestamp (YYYY-MM-DD#HH:MM:SS)
+//             if (log.datetimestamp) {
+//                 let dt = log.datetimestamp.toString();
+//                 log.datetimestamp = `${dt.slice(0, 4)}-${dt.slice(4, 6)}-${dt.slice(6, 8)}#${dt.slice(8, 10)}:${dt.slice(10, 12)}:${dt.slice(12, 14)}`;
+//             }
+
+//             // Convert runtime (seconds) → HH:MM:SS
+//             if (log.runtime !== undefined) {
+//                 let sec = parseInt(log.runtime, 10);
+//                 let hours = String(Math.floor(sec / 3600)).padStart(2, "0");
+//                 let minutes = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+//                 let seconds = String(sec % 60).padStart(2, "0");
+//                 log.runtime = `${hours}:${minutes}:${seconds}`;
+//             }
+
+//             data.push(log);
+//         });
+
+//         // Sort by formatted datetimestamp
+//         data.sort((a, b) => new Date(a.datetimestamp.replace("#", " ")) - new Date(b.datetimestamp.replace("#", " ")));
+
+//         // Extract column headers dynamically
+//         let headers = Object.keys(data[0]);
+
+//         // Construct Excel data
+//         let sheetData = [];
+//         sheetData.push(["EXPORTED DATA"]); // Custom heading
+//         sheetData.push(headers); // Column headers
+//         data.forEach(log => {
+//             sheetData.push(headers.map(header => log[header]));
+//         });
+
+//         // Convert to worksheet
+//         let ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+//         // Create workbook and write to Blob
+//         let wb = XLSX.utils.book_new();
+//         XLSX.utils.book_append_sheet(wb, ws, "Logs");
+
+//         let wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+
+//         // Create Blob and trigger download
+//         let blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+//         let url = URL.createObjectURL(blob);
+//         let a = document.createElement("a");
+//         a.href = url;
+//         a.download = "solar_data_logs.xlsx";
+//         document.body.appendChild(a);
+//         a.click();
+//         document.body.removeChild(a);
+//         URL.revokeObjectURL(url);
+//     }).catch(error => {
+//         console.error("Error fetching data:", error);
+//     });
+// }
 
     
 
