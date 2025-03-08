@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Farm Monitor</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        text-decoration: none;
+        background-color: #e8f5e9; /* Light green background */
+    }
+
+    *{
+        text-decoration: none;
+    }
+
+    .header {
+        background-color: #4CAF50; /* Green header */
+        color: white;
+        text-align: center;
+        padding: 15px;
+        font-size: 24px;
+    }
+
+    .info-section {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        padding: 10px;
+        background-color: #f1f8e9;
+        border-bottom: 2px solid #4CAF50;
+    }
+
+    .info-card {
+        flex: 1 1 45%;
+        background-color: #ffffff;
+        margin: 10px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .info-card h3 {
+        color: #4CAF50;
+        margin-bottom: 10px;
+    }
+
+    .table-container {
+        width: 80%;
+        text-align: center;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
+        align-items: center;
+        justify-content: center;
+       
+    }
+
+    ::-webkit-scrollbar{
+        outline: none;
+    }
+
+    table {
+        width: 100%;
+        margin: 0 auto;
+        border-collapse: collapse;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        font-size: 14px;
+        text-align: center;
+        width: 5rem;
+    }
+
+    button{        
+        width: 80%;
+        display: block; 
+        padding: 10px;
+        align-items: center;
+        background-color: #28a745;
+        color: #fff;
+        border: none;
+        border-radius:4px;
+        font-size: 16px;
+        cursor: pointer; 
+        justify-content: center;
+        text-decoration: none;
+        margin: 0 auto;
+    }
+
+    th {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    h3{
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin-top: 1.5rem;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    @media (max-width: 768px) {
+        .info-card {
+            flex: 1 1 100%;
+        }
+
+        th, td {
+            font-size: 12px;
+        }
+    }
+</style>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
+</head>
+<body>
+
+    <div class="header">Smart Solar Monitoring System</div> 
+
+<button onclick="exporttoexcel()">Export Data</button>
+
+    <!-- Info Section -->
+    <div class="info-section">
+        <div class="info-card">
+            <h3>PANEL(STATIONARY)</h3>
+            <p>Voltage: <span id="voltage1">12.3</span>  V</p>
+              <p>Current: <span id="current1">3.45</span>  A</p>
+
+    <p>Power: <span id="power1">42.44</span>  W</p>
+
+<p>RunTime: <span id="runtime1">30.</span>  </p>
+        </div>
+        <div class="info-card">
+            <h3>SOLAR PANEL(TRACKING)</h3>
+             <p>Voltage: <span id="voltage2">12.6</span>  V</p>
+              <p>Current: <span id="current2">2.40</span>  A</p>
+
+    <p>Power: <span id="power2">30.24</span>  W</p>
+
+  <p>RunTime: <span id="runtime2">30.</span>  </p>
+        </div>
+
+    </div>
+
+    <!-- Log Data Table -->
+
+    <h3>Data Logs</h3>
+
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Device ID</th>
+                    <th>Date</th>
+                    <th>Voltage1 (V)</th>
+                    <th>Voltage2 (V)</th>
+                    <th>Current1 (A)</th>
+                    <th>Current2 (A)</th>
+                    <th>Power1 (W)</th>
+                    <th>Power2 (W)</th>
+                    <th>RunTime (HMS)</th>
+                </tr>
+            </thead>
+            <tbody id="data-table"></tbody>
+        </table>
+    </div>
+
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAmhaIhOWWlPYceSdtJScVIIuZP0Rb71hM",
+        authDomain: "project-iot-51262.firebaseapp.com",
+        databaseURL: "https://project-iot-51262-default-rtdb.firebaseio.com",
+        projectId: "project-iot-51262",
+        storageBucket: "project-iot-51262.appspot.com",
+        messagingSenderId: "785303672386",
+        appId: "1:785303672386:web:8fb1aaac3c34e72e87bfdb"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+
+    function formatTimestamp(timestamp) {
+    if (!timestamp || timestamp.length !== 14) return 'N/A'; 
+    return `${timestamp.substring(0,4)}-${timestamp.substring(4,6)}-${timestamp.substring(6,8)} ` +
+           `${timestamp.substring(8,10)}:${timestamp.substring(10,12)}:${timestamp.substring(12,14)}`;
+}
+
+
+    function fetchData() {
+        const path = '/unilandmark_elect/smart_solar_tracker/logs';
+        database.ref(path).on('value', snapshot => {
+            const data = snapshot.val();
+            const tableBody = document.getElementById('data-table');
+            tableBody.innerHTML = ''; // Clear table
+
+            if (data) {
+                Object.entries(data).forEach(([key, entry]) => {
+                    const formattedTime = formatTimestamp(entry.datetimestamp); // Format datetime
+
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td>Device001</td>
+                            <td>${formattedTime}</td>
+                            <td>${entry.voltage1}</td>
+                            <td>${entry.voltage2}</td>
+                            <td>${entry.current1}</td>
+                            <td>${entry.current2}</td>
+                            <td>${entry.power1}</td>
+                            <td>${entry.power2}</td>
+                            <td>${entry.runtime}</td>
+                  
+                        </tr>
+                    `;
+                });
+            }
+        });
+
+        // Fetch Temperature and Humidity for each farm
+        database.ref('/unilandmark_elect/smart_solar_tracker/').on('value', snapshot => {
+            const data = snapshot.val();
+
+            document.getElementById('voltage1').textContent = data?.voltage1;
+            document.getElementById('voltage2').textContent = data?.voltage2;
+            document.getElementById('current1').textContent = data?.current1;
+            document.getElementById('current2').textContent = data?.current2;
+
+document.getElementById('power1').textContent = data?.power1;
+
+document.getElementById('power2').textContent = data?.power2;
+
+document.getElementById('runtime1').textContent = data?.runtime;
+
+document.getElementById('runtime2').textContent = data?.runtime;
+           
+
+        });
+
+
+    }
+
+
+
+
+function exporttoexcel() {
+    database.ref("/unilandmark_elect/smart_solar_tracker/logs").once("value", snapshot => {
+        if (!snapshot.exists()) {
+            alert("No data found!");
+            return;
+        }
+
+        let data = [];
+        snapshot.forEach(childSnapshot => {
+            let log = childSnapshot.val();
+            data.push(log);
+        });
+
+        // Sort by datetimestamp
+        data.sort((a, b) => new Date(a.datetimestamp) - new Date(b.datetimestamp));
+
+        // Extract column headers dynamically from the first log entry
+        let headers = Object.keys(data[0]);
+
+        // Manually construct rows for Excel
+        let sheetData = [];
+
+        // Add the custom heading row (spanning all columns)
+        sheetData.push([ "EXPORTED DATA" ]); 
+
+        // Add column headers
+        sheetData.push(headers);
+
+        // Add log data
+        data.forEach(log => {
+            sheetData.push(headers.map(header => log[header]));
+        });
+
+        // Convert array to worksheet
+        let ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+        // Style the custom heading (bold and red)
+        let headingCell = "A1";
+        ws[headingCell].s = {
+            font: { bold: true, color: { rgb: "FF0000" } }
+        };
+
+        // Create workbook and export
+        let wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Logs");
+        XLSX.writeFile(wb, "solar_data_logs.xlsx");
+    }).catch(error => {
+        console.error("Error fetching data:", error);
+    });
+}
+
+
+
+
+
+    // Call fetchData on page load
+    fetchData();
+</script>
+</body>
+</html>
