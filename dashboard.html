@@ -170,7 +170,7 @@
     <!-- Log Data Table -->
 
     <h3>Data Logs</h3>
-<button onclick="exporttoexcel()">Export Data</button>
+<button onclick="exporttoExcel()">Export Data</button>
 
 
     <div class="table-container">
@@ -272,7 +272,7 @@ document.getElementById('runtime2').textContent = data?.runtime;
 
 
 
-function exportToExcel() {
+function exporttoExcel() {
     database.ref("/unilandmark_elect/smart_solar_tracker/logs").once("value", snapshot => {
         if (!snapshot.exists()) {
             alert("No data found!");
