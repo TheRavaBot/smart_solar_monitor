@@ -13,6 +13,25 @@
         background-color: #e8f5e9; /* Light green background */
     }
 
+      #offlineOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.7); /* Transparent white text */
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            backdrop-filter: blur(5px); /* Blur effect */
+            display: none; /* Hidden by default */
+        }
+
+    
     *{
         text-decoration: none;
     }
@@ -140,7 +159,7 @@
 
 </head>
 <body>
-
+    <div id="offlineOverlay">NO INTERNET CONNECTION</div>
     <div class="header">Smart Solar Monitoring System</div> 
 
 
@@ -341,9 +360,15 @@ console.log(newruntime);
 return newruntime;
 }
 
-
-    // Call fetchData on page load
-    fetchData();
+        function updateOnlineStatus() {
+            document.getElementById('offlineOverlay').style.display = navigator.onLine ? 'none' : 'flex';
+        }
+        
+        window.addEventListener('load', updateOnlineStatus);
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        // Call fetchData on page load
+        fetchData();
 </script>
 </body>
 </html>
