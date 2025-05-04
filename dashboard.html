@@ -320,7 +320,9 @@ function exporttoExcel() {
         });
 
         // Sort by formatted datetimestamp
-        data.sort((a, b) => new Date(a.datetimestamp.replace("#", " ")) - new Date(b.datetimestamp.replace("#", " ")));
+      //  data.sort((a, b) => new Date(a.datetimestamp.replace("#", " ")) - new Date(b.datetimestamp.replace("#", " ")));
+data = data.filter(log => typeof log.datetimestamp === "string" && log.datetimestamp.includes("#"));
+data.sort((a, b) => new Date(a.datetimestamp.replace("#", " ")) - new Date(b.datetimestamp.replace("#", " ")));
 
         // Extract column headers dynamically
         let headers = Object.keys(data[0]);
