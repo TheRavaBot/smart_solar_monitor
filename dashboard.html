@@ -238,15 +238,22 @@
 }
 
 
-    function fetchData() {
-        const path = '/unilandmark_elect/smart_solar_tracker/logs';
-        database.ref(path).on('value', snapshot => {
+    
+
+function fetchData() {
+    const path = '/unilandmark_elect/smart_solar_tracker/logs';
+    database.ref(path)
+        .limitToLast(100) // Fetch only the last 100 entries
+        .on('value', snapshot => {
             const data = snapshot.val();
             const tableBody = document.getElementById('data-table');
             tableBody.innerHTML = ''; // Clear table
 
             if (data) {
-                Object.entries(data).forEach(([key, entry]) => {
+                // Optional: sort entries by timestamp if needed
+                const entries = Object.entries(data).sort((a, b) => a[1].datetimestamp - b[1].datetimestamp);
+
+                entries.forEach(([key, entry]) => {
                     const formattedTime = formatTimestamp(entry.datetimestamp); // Format datetime
                     const formatedruntime = sectohms(entry.runtime);
                     tableBody.innerHTML += `
@@ -260,34 +267,29 @@
                             <td>${entry.power1}</td>
                             <td>${entry.power2}</td>
                             <td>${formatedruntime}</td>
-                  
                         </tr>
                     `;
                 });
             }
         });
 
-        // Fetch Temperature and Humidity for each farm
-        database.ref('/unilandmark_elect/smart_solar_tracker/').on('value', snapshot => {
-            const data = snapshot.val();
+    // Fetch latest Voltage, Current, Power, and Runtime
+    database.ref('/unilandmark_elect/smart_solar_tracker/').on('value', snapshot => {
+        const data = snapshot.val();
 
-            document.getElementById('voltage1').textContent = data?.voltage1;
-            document.getElementById('voltage2').textContent = data?.voltage2;
-            document.getElementById('current1').textContent = data?.current1;
-            document.getElementById('current2').textContent = data?.current2;
-            document.getElementById('power1').textContent = data?.power1;
-            document.getElementById('power2').textContent = data?.power2;
-            let sruntime = sectohms(data.runtime);
-            document.getElementById('runtime1').textContent = sruntime;
-            document.getElementById('runtime2').textContent = sruntime;
-           
-
-        });
-
-
+        document.getElementById('voltage1').textContent = data?.voltage1 || 'N/A';
+        document.getElementById('voltage2').textContent = data?.voltage2 || 'N/A';
+        document.getElementById('current1').textContent = data?.current1 || 'N/A';
+        document.getElementById('current2').textContent = data?.current2 || 'N/A';
+        document.getElementById('power1').textContent = data?.power1 || 'N/A';
+        document.getElementById('power2').textContent = data?.power2 || 'N/A';
+        
+        let sruntime = sectohms(data?.runtime || 0);
+        document.getElementById('runtime1').textContent = sruntime;
+        document.getElementById('runtime2').textContent = sruntime;
+    });
     }
-
-
+    
 
 
 function exporttoExcel() {
